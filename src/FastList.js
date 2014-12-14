@@ -16,192 +16,192 @@
     this.tail = null;
     this.length = 0;
     this.listIndex = {};
-    this.Node = NodeConstructor(this);
 
   };
 
-  FastList.prototype.addToTail = function (val, key) {
+  FastList.prototype._mustFind = function(keyAt) {
 
-    if (this.head){
-
-      this.tail.next = new this.Node({
-        value: val,
-        parent: this.tail,
-        key: key
-      });
-      this.tail = this.tail.next;
-
-    } else {
-
-      this.head = new this.Node({
-        value: val
-      });
-      this.tail = this.head;
-
-    }
-
-    return this.tail.__key__;
+    var node = this.listIndex[keyAt];
+    if (node) return node;
+    throw new Error(keyAt + ' does not reference an existing node.  Create a node with this key first using an add method');
 
   };
 
-  FastList.prototype.removeFromHead = function () {
+  FastList.prototype._mustNotFind = function(keyAt) {
 
-    var result;
-
-    if (this.head){
-
-      result = this.head.value;
-
-      if (this.head === this.tail){
-
-        this.tail = null;
-
-      }
-
-      this.head = this.head.next;
-
-      this.length--;
-
-      return result;
-
-    }
-
-    return null;
+    if (this.listIndex[keyAt]) throw new Error(keyAt + ' already refers to an existing node.  Use \'set\' to update an existing node or make sure to pass in a unique key.');
 
   };
 
-  FastList.prototype.removeFromTail = function () {
+  FastList.prototype._add = function(val, key) {
 
-    var result;
+    key = key || getUUID();
 
-    if (this.tail){
-
-      result = this.tail.value;
-
-      if (this.tail === this.head){
-
-        this.head = null;
-
-      }
-
-      this.tail = this.tail.parent;
-
-      if(this.tail) this.tail.next = null;
-
-      this.length--;
-
-      return result;
-
-    }
-
-    return null;
-
-  };
-
-  FastList.prototype.addToHead = function (val, key) {
-
-    if (this.head){
-
-      this.head.parent = new this.Node({
-        value: val,
-        next: this.head
-      });
-      this.head = this.head.parent;
-
-    } else {
-
-      this.head = new this.Node({
+    try {
+      this._mustNotFind(key);
+      var newNode = new Node({
         value: val,
         key: key
       });
-      this.tail = this.head;
-
+      this.listIndex[key] = newNode;
+      this.length++;
+      return newNode;
     }
 
+    catch (e) {
+      throw e;
+    }
+
+  };
+
+  FastList.prototype._addFirst = function(val, key) {
+
+    if (!this.length) this.head = this.tail = this._add(val, key);
+    else throw new Error('List already has elements.  Use add before/after instead');
     return this.head.__key__;
-
   };
 
-  FastList.prototype.get = function (key) {
+  FastList.prototype._placeIn = function (newNode, keyAt, placeAbove) {
 
-    if (this.listIndex[key]){
+    try {
+      var nodeAt = this._mustFind(keyAt);
 
-      return this.listIndex[key].value;
+      var placeAt = placeAbove ? 'parent' : 'next';
+      var relation = placeAbove ? 'next' : 'parent';
+
+      if (nodeAt[placeAt]) {
+        newNode[placeAt] = nodeAt[placeAt];
+        nodeAt[placeAt][relation] = newNode;
+      }
+
+      newNode[relation] = nodeAt;
+      nodeAt[placeAt] = newNode;
+
+      if (placeAbove && nodeAt === this.head) this.head = newNode;
+      else if (!placeAbove && nodeAt === this.tail) this.tail = newNode;
 
     }
 
-  };
-
-  FastList.prototype.set = function (key, val) {
-
-    if (this.listIndex[key]){
-
-      this.listIndex[key].value = val;
-
-    } else {
-
-      throw new Error(key + ' does not reference an existing node.  Create a node with this key first using an add method');
-
+    catch (e) {
+      throw e;
     }
 
   };
 
   FastList.prototype.addBefore = function (keyAt, val, key) {
 
+    try {
+
+      var newNode = this._add(val, key);
+      this._placeIn(newNode, keyAt, true);
+      return newNode.__key__;
+
+    }
+
+    catch (e) {
+      throw e;
+    }
+
+  };
+
+  FastList.prototype.addAfter = function (keyAt, val, key) {
+
+    try {
+
+      var newNode = this._add(val, key);
+      this._placeIn(newNode, keyAt, false);
+      return newNode.__key__;
+
+    }
+
+    catch (e) {
+      throw e;
+    }
+
+  };
+
+  FastList.prototype.addToTail = function (val, key) {
+
+    if (this.head) return this.addAfter(this.tail.__key__, val, key);
+    return this._addFirst(val, key);
+
+  };
+
+  FastList.prototype.addToHead = function (val, key) {
+
+    if (this.head) return this.addBefore(this.head.__key__, val, key);
+    return this._addFirst(val, key);
+
+  };
+
+  FastList.prototype.removeAt = function (keyAt) {
+
     var nodeAt = this.listIndex[keyAt];
 
     if (nodeAt){
 
-      var newNode = new this.Node({
-        value: val,
-        key: key,
-        parent: nodeAt.parent,
-        next: nodeAt
-      });
+      if (nodeAt.parent) nodeAt.parent.next = nodeAt.next;
+      else if (this.head === nodeAt) this.head = nodeAt.next;
 
-      if (nodeAt.parent) nodeAt.parent.next = newNode;
+      if (nodeAt.next) nodeAt.next.parent = nodeAt.parent;
+      else if (this.tail === nodeAt) this.tail = nodeAt.parent;
 
-      nodeAt.parent = newNode;
+      delete this.listIndex[keyAt];
 
-      return newNode.__key__;
+      this.length--;
 
-    } else {
+      return nodeAt.value;
 
-      throw new Error(key + ' does not reference an existing node.  Create a node with this key first using an add method');
+    }
 
+  };
+
+  FastList.prototype.removeFromHead = function () {
+
+    if (this.head) return this.removeAt(this.head.__key__);
+    return null;
+
+  };
+
+  FastList.prototype.removeFromTail = function () {
+
+    if (this.tail) return this.removeAt(this.tail.__key__);
+    return null;
+
+  };
+
+  FastList.prototype.get = function (keyAt) {
+
+    var node = this.listIndex[keyAt];
+    if (node) return node.value;
+
+  };
+
+  FastList.prototype.set = function (keyAt, val) {
+
+    try {
+      var node = this._mustFind(keyAt);
+      node.value = val;
+    }
+
+    catch (e) {
+      throw e;
     }
 
   };
 
   /****************************************/
   //
-  //     List Node Constructor Factory
+  //     List Node Constructor
   //
   /****************************************/
 
-  function NodeConstructor (list) {
-    var listIndex = list.listIndex;
+  function Node (node) {
 
-    return function (node) {
-
-      var key = node.key || getUUID();
-
-      if (listIndex[key]) {
-
-        throw new Error (key + ' is already assigned!');
-
-      } else {
-
-        list.length++;
-        this.value = node.value;
-        this.next = node.next || null;
-        this.parent = node.parent || null;
-        this.__key__ = key;
-        listIndex[key] = this;
-
-      }
-
-    };
+    this.value = node.value;
+    this.next = node.next || null;
+    this.parent = node.parent || null;
+    this.__key__ = node.key;
 
   }
 
