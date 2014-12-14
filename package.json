@@ -1,0 +1,31 @@
+{
+  "name": "FastList",
+  "version": "1.0.0",
+  "description": "A Linked List with O(1) item lookup times",
+  "main": "index.js",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/drabinowitz/FastList"
+  },
+  "keywords": [
+    "LinkedList"
+  ],
+  "author": "Dmitri",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/drabinowitz/FastList/issues"
+  },
+  "homepage": "https://github.com/drabinowitz/FastList",
+  "devDependencies": {
+    "chai": "^1.10.0",
+    "gulp": "^3.8.10",
+    "karma": "^0.12.28",
+    "karma-chai": "*",
+    "karma-chrome-launcher": "^0.1.5",
+    "karma-cli": "0.0.4",
+    "karma-mocha": "^0.1.9",
+    "karma-nested-reporter": "^0.1.3",
+    "karma-phantomjs-launcher": "^0.1.4",
+    "mocha": "^2.0.1"
+  }
+}
