@@ -571,4 +571,70 @@ describe('FastList', function() {
 
   });
 
+  describe('FastList convenience methods', function () {
+
+    describe('forEach', function () {
+
+      it('should perform an operation for each node in the list', function () {
+
+        var counter = 0;
+        var increment = function () {counter++;};
+
+        fastList.forEach(increment);
+        expect(counter).to.equal(0);
+
+        fastList.addToTail(1);
+        fastList.addToTail(2);
+        fastList.addToTail(3);
+
+        fastList.forEach(increment);
+        expect(counter).to.equal(3);
+
+      });
+
+      it('should give the callback access to the node.value node.__key__ and the list', function () {
+
+        var keys = [];
+        var counter = 0;
+        keys.push(fastList.addToTail(1));
+        keys.push(fastList.addToTail(2));
+        keys.push(fastList.addToTail(3));
+
+        fastList.forEach(function (value, key, list) {
+
+          expect(value).to.equal(fastList.get(keys[counter]));
+          expect(fastList.get(key)).to.equal(fastList.get(keys[counter]));
+          expect(list).to.equal(fastList);
+          counter++;
+
+        });
+
+      });
+
+    });
+
+    describe('sort', function () {
+
+      it('should default to toString character comparison', function () {
+
+        var arr = [1, 5, 2, 'asd', 'ladas', 90, {}, false, null];
+        for (var i = 0; i <  arr.length; i++){
+          fastList.addToTail(arr[i]);
+        }
+
+        fastList.sort();
+
+        var result = [];
+        fastList.forEach(function(value){
+          result.push(value);
+        });
+
+        expect(result).to.eql(arr.sort());
+
+      });
+
+    });
+
+  });
+
 });

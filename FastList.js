@@ -190,6 +190,48 @@
 
   };
 
+  //Convenience methods
+
+  FastList.prototype.forEach = FastList.prototype.each = function (cb) {
+
+    for (var node = this.head; node; node = node.next) {
+      cb (node.value, node.__key__, this);
+    }
+
+  };
+
+  function defaultSort (a, b) {
+    if (a === null) a = 'null';
+    if (b === null) b = 'null';
+    return a.toString() < b.toString() ? -1 : 1;
+  }
+
+  FastList.prototype.sort = function (sortFn) {
+
+    sortFn = sortFn || defaultSort;
+
+    for (var node = this.head; node; node = node.next) {
+      var oldParent = node.parent;
+
+      while (oldParent && sortFn(node.value, oldParent.value) < 0) {
+
+        oldParent.next = node.next;
+        node.parent = oldParent.parent;
+
+        if (oldParent === this.head) this.head = node;
+        else oldParent.parent.next = node;
+        if (node === this.tail) this.tail = oldParent;
+        else node.next.parent = oldParent;
+
+        oldParent.parent = node;
+        node.next = oldParent;
+
+        oldParent = node.parent;
+
+      }
+    }
+  };
+
   /****************************************/
   //
   //     List Node Constructor
