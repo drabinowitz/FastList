@@ -177,6 +177,14 @@
 
   };
 
+  FastList.prototype.first = function () {
+    if (this.length) return this.get(this.head.__key__);
+  };
+
+  FastList.prototype.last = function () {
+    if (this.length) return this.get(this.tail.__key__);
+  };
+
   FastList.prototype.set = function (keyAt, val) {
 
     try {

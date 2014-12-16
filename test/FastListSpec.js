@@ -205,6 +205,31 @@ describe('FastList', function() {
 
     });
 
+    describe('first and last', function () {
+
+      it('should return the head value and tail value respectively', function () {
+        fastList.addToTail(1);
+        expect(fastList.first()).to.equal(1);
+        expect(fastList.last()).to.equal(1);
+
+        fastList.addToTail(2);
+        expect(fastList.first()).to.equal(1);
+        expect(fastList.last()).to.equal(2);
+
+        fastList.addToHead(3);
+        expect(fastList.first()).to.equal(3);
+        expect(fastList.last()).to.equal(2);
+      });
+
+      it('should return undefined if the list is empty', function () {
+
+        expect(fastList.first()).to.be.undefined();
+        expect(fastList.last()).to.be.undefined();
+
+      });
+
+    });
+
   });
 
   describe('FastList lookup functionality', function () {
@@ -630,6 +655,33 @@ describe('FastList', function() {
         });
 
         expect(result).to.eql(arr.sort());
+
+      });
+
+      it('should be able to accept a sorting function', function () {
+
+        var arr = [1, 5, 3, 'dsa', false];
+
+        var sort = function (a, b) {
+          if (typeof a === 'boolean') a = -Infinity;
+          if (typeof b === 'boolean') b = -Infinity;
+          if (typeof a === 'string') a = Infinity;
+          if (typeof b === 'string') b = Infinity;
+          return a - b;
+        };
+
+        for (var i = 0; i <  arr.length; i++){
+          fastList.addToTail(arr[i]);
+        }
+
+        fastList.sort(sort);
+
+        var result = [];
+        fastList.forEach(function(value){
+          result.push(value);
+        });
+
+        expect(result).to.eql(arr.sort(sort));
 
       });
 
